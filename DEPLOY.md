@@ -75,7 +75,7 @@ Contenido (ajusta los valores):
 ```
 SECRET_KEY=genera-una-clave-larga-aqui-minimo-50-caracteres
 DEBUG=False
-ALLOWED_HOSTS=erp.tudominio.com
+ALLOWED_HOSTS=erp.juanpablopalomo.com
 
 DB_NAME=grassfed_erp
 DB_HOST=localhost
@@ -133,10 +133,14 @@ After=network.target
 
 [Service]
 User=ubuntu
+Group=www-data
 WorkingDirectory=/var/www/grassfed
+RuntimeDirectory=grassfed
+RuntimeDirectoryMode=0755
+UMask=0007
 ExecStart=/var/www/grassfed/.venv/bin/gunicorn \
           --workers 3 \
-          --bind unix:/run/grassfed.sock \
+          --bind unix:/run/grassfed/grassfed.sock \
           erp_project.wsgi:application
 Restart=always
 
@@ -165,7 +169,7 @@ En el panel DNS de tu proveedor de dominio, agrega un registro:
 Espera unos minutos a que propague. Puedes verificar con:
 
 ```bash
-nslookup erp.tudominio.com
+nslookup erp.juanpablopalomo.com
 ```
 
 ### 4.2 Crear el bloque Nginx
@@ -177,14 +181,14 @@ sudo nano /etc/nginx/sites-available/grassfed
 ```nginx
 server {
     listen 80;
-    server_name erp.tudominio.com;
+    server_name erp.juanpablopalomo.com;
 
     location /static/ {
         alias /var/www/grassfed/staticfiles/;
     }
 
     location / {
-        proxy_pass http://unix:/run/grassfed.sock;
+        proxy_pass http://unix:/run/grassfed/grassfed.sock;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -202,7 +206,7 @@ sudo systemctl reload nginx
 ### 4.3 Activar HTTPS con Let's Encrypt
 
 ```bash
-sudo certbot --nginx -d erp.tudominio.com
+sudo certbot --nginx -d erp.juanpablopalomo.com
 ```
 
 Certbot modifica el bloque Nginx automáticamente y renueva el certificado solo. Verifica la renovación automática:

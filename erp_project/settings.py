@@ -124,3 +124,10 @@ MESSAGE_TAGS = {
     msg_constants.WARNING: 'warning',
     msg_constants.ERROR: 'danger',
 }
+
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = [
+        f'https://{host}' for host in ALLOWED_HOSTS
+        if host not in ('localhost', '127.0.0.1')
+    ]
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
