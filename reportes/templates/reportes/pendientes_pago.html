@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Pendientes de pago{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item"><a href="{% url 'reportes:index' %}">Reportes</a></li>
+<li class="breadcrumb-item active">Pendientes de pago</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3 flex-wrap">
+  <h5 class="fw-bold mb-0">Pendientes de pago <small class="text-muted fw-normal fs-6">(vw_PendientesDePago)</small></h5>
+  <a href="?envio={{ envio_q }}&export=csv" class="btn btn-sm btn-outline-success ms-auto">
+    <i class="bi bi-download me-1"></i>Exportar CSV
+  </a>
+</div>
+
+<form method="get" class="mb-3">
+  <div class="input-group" style="max-width:300px;">
+    <input type="text" name="envio" value="{{ envio_q }}" class="form-control" placeholder="Filtrar por zona de envío…">
+    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+    {% if envio_q %}<a href="{% url 'reportes:pendientes_pago' %}" class="btn btn-outline-danger"><i class="bi bi-x-lg"></i></a>{% endif %}
+  </div>
+</form>
+
+<div class="card table-card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>#</th><th>Fecha</th><th class="text-end">Días</th>
+            <th>Cliente</th><th>Teléfono</th>
+            <th class="text-end">Total (Q)</th>
+            <th>Pago</th><th>Envío</th><th>Entregado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td><a href="{% url 'pedidos:detail' r.ID_Pedido %}" class="fw-semibold text-decoration-none">#{{ r.ID_Pedido }}</a></td>
+            <td class="small">{{ r.Fecha }}</td>
+            <td class="text-end small {% if r.Dias_Vencimiento > 30 %}text-danger fw-bold{% elif r.Dias_Vencimiento > 7 %}text-warning{% endif %}">{{ r.Dias_Vencimiento }}</td>
+            <td>{{ r.Cliente }}</td>
+            <td class="small">{{ r.Telefono }}</td>
+            <td class="text-end fw-semibold">Q {{ r.Total|floatformat:2 }}</td>
+            <td class="small">{{ r.Pago }}</td>
+            <td class="small">{{ r.Envio|default:"—" }}</td>
+            <td>{% if r.Entregado %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" class="text-center text-muted py-4">No hay pedidos pendientes de pago.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

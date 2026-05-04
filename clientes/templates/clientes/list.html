@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Clientes{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item active">Clientes</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3">
+  <h5 class="fw-bold mb-0">Clientes</h5>
+  <a href="{% url 'clientes:create' %}" class="btn btn-primary btn-sm ms-auto">
+    <i class="bi bi-plus-lg me-1"></i> Nuevo cliente
+  </a>
+</div>
+
+<!-- Search -->
+<form method="get" class="mb-3">
+  <div class="input-group" style="max-width:440px;">
+    <input type="text" name="q" value="{{ q }}" class="form-control"
+           placeholder="Buscar por nombre, teléfono, NIT o correo…">
+    <button class="btn btn-outline-secondary" type="submit">
+      <i class="bi bi-search"></i>
+    </button>
+    {% if q %}
+    <a href="{% url 'clientes:list' %}" class="btn btn-outline-danger">
+      <i class="bi bi-x-lg"></i>
+    </a>
+    {% endif %}
+  </div>
+</form>
+
+<div class="card table-card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>NIT</th>
+            <th>Correo</th>
+            <th>Fecha alta</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in page %}
+          <tr>
+            <td class="fw-semibold">{{ c.Nombre }}</td>
+            <td>{{ c.Telefono }}</td>
+            <td>{{ c.NIT }}</td>
+            <td class="small text-muted">{{ c.Correo|default:"—" }}</td>
+            <td class="small">{{ c.Fecha_Alta }}</td>
+            <td class="text-center">
+              <a href="{% url 'clientes:detail' c.Telefono %}"
+                 class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                <i class="bi bi-eye"></i>
+              </a>
+              {% if user_group in 'admin dev' %}
+              <a href="{% url 'clientes:edit' c.Telefono %}"
+                 class="btn btn-sm btn-outline-secondary ms-1" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">
+              No se encontraron clientes{% if q %} para "{{ q }}"{% endif %}.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if page.has_other_pages %}
+  <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+    <small class="text-muted">
+      Página {{ page.number }} de {{ page.paginator.num_pages }}
+      ({{ page.paginator.count }} clientes)
+    </small>
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page.previous_page_number }}&q={{ q }}">‹</a>
+        </li>
+        {% endif %}
+        {% if page.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page.next_page_number }}&q={{ q }}">›</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

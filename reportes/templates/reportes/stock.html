@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Stock actual{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item"><a href="{% url 'reportes:index' %}">Reportes</a></li>
+<li class="breadcrumb-item active">Stock actual</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3">
+  <h5 class="fw-bold mb-0">Stock actual <small class="text-muted fw-normal fs-6">(vw_StockActual)</small></h5>
+  <a href="?export=csv" class="btn btn-sm btn-outline-success ms-auto">
+    <i class="bi bi-download me-1"></i>Exportar CSV
+  </a>
+</div>
+
+<div class="card table-card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>SKU</th><th>Producto</th>
+            <th class="text-end">Ingresos (lb)</th>
+            <th class="text-end">Transf. (lb)</th>
+            <th class="text-end">Ventas (lb)</th>
+            <th class="text-end">Stock (lb)</th>
+            <th class="text-end">Mínimo (lb)</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in stock %}
+          <tr>
+            <td class="font-monospace small">{{ s.SKU }}</td>
+            <td class="fw-semibold">
+              <a href="{% url 'productos:detail' s.SKU %}" class="text-decoration-none">{{ s.Producto }}</a>
+            </td>
+            <td class="text-end small text-success">{{ s.Ingresos_lb|floatformat:2 }}</td>
+            <td class="text-end small text-warning">{{ s.Transf_Salida_lb|floatformat:2 }}</td>
+            <td class="text-end small text-danger">{{ s.Ventas_lb|floatformat:2 }}</td>
+            <td class="text-end fw-semibold">{{ s.Stock_lb|floatformat:2 }}</td>
+            <td class="text-end small text-muted">{{ s.Stock_Minimo|floatformat:1 }}</td>
+            <td>
+              {% if s.Estado_Stock == 'OK' %}<span class="badge badge-stock-ok">OK</span>
+              {% elif s.Estado_Stock == 'BAJO' %}<span class="badge badge-stock-bajo">Bajo</span>
+              {% else %}<span class="badge badge-stock-agotado">Agotado</span>{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">Sin datos.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

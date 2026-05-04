@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}{{ cliente.Nombre }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item"><a href="{% url 'clientes:list' %}">Clientes</a></li>
+<li class="breadcrumb-item active">{{ cliente.Nombre }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start mb-4 gap-3 flex-wrap">
+  <div>
+    <h5 class="fw-bold mb-0">{{ cliente.Nombre }}</h5>
+    <small class="text-muted">{{ cliente.Telefono }}</small>
+  </div>
+  <div class="ms-auto d-flex gap-2 flex-wrap">
+    {% if user_group in 'admin dev' %}
+    <a href="{% url 'clientes:edit' cliente.Telefono %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-pencil me-1"></i>Editar
+    </a>
+    {% endif %}
+    <a href="{% url 'pedidos:create' %}?cliente={{ cliente.Telefono }}"
+       class="btn btn-sm btn-primary">
+      <i class="bi bi-cart-plus me-1"></i>Nuevo pedido
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Info card -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold py-3">
+        <i class="bi bi-person-badge me-2 text-primary"></i>Información
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">Teléfono</dt>
+          <dd class="col-sm-8">{{ cliente.Telefono }}</dd>
+          <dt class="col-sm-4 text-muted">NIT</dt>
+          <dd class="col-sm-8">{{ cliente.NIT }}</dd>
+          <dt class="col-sm-4 text-muted">Correo</dt>
+          <dd class="col-sm-8">{{ cliente.Correo|default:"—" }}</dd>
+          <dt class="col-sm-4 text-muted">Dirección</dt>
+          <dd class="col-sm-8">{{ cliente.Direccion }}</dd>
+          <dt class="col-sm-4 text-muted">Alta</dt>
+          <dd class="col-sm-8">{{ cliente.Fecha_Alta }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debt card -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold py-3">
+        <i class="bi bi-wallet2 me-2 text-warning"></i>Estado de cuenta
+      </div>
+      <div class="card-body d-flex align-items-center justify-content-center">
+        {% if deuda > 0 %}
+        <div class="text-center">
+          <div class="fs-2 fw-bold text-danger">Q {{ deuda|floatformat:2 }}</div>
+          <div class="text-muted small mt-1">Deuda pendiente de pago</div>
+        </div>
+        {% else %}
+        <div class="text-center text-success">
+          <i class="bi bi-check-circle-fill fs-2"></i>
+          <div class="mt-1 fw-semibold">Sin deuda pendiente</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Order history -->
+<div class="card table-card">
+  <div class="card-header bg-white fw-semibold py-3 d-flex align-items-center">
+    <i class="bi bi-clock-history me-2 text-primary"></i>Últimos pedidos
+    <a href="{% url 'pedidos:list' %}?cliente={{ cliente.Telefono }}"
+       class="btn btn-sm btn-outline-primary ms-auto">Ver todos</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>#</th><th>Fecha</th><th class="text-end">Total</th>
+            <th>Estado</th><th>Pago</th><th>Entregado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pedidos %}
+          <tr>
+            <td><a href="{% url 'pedidos:detail' p.ID_Pedido %}" class="fw-semibold text-decoration-none">#{{ p.ID_Pedido }}</a></td>
+            <td class="small">{{ p.Fecha }}</td>
+            <td class="text-end small fw-semibold">Q {{ p.Total|floatformat:2 }}</td>
+            <td>
+              {% if p.Estado == 'Pagado' %}<span class="badge badge-estado-pagado">Pagado</span>
+              {% elif p.Estado == 'Pendiente de Pago' %}<span class="badge badge-estado-pendiente">Pendiente</span>
+              {% else %}<span class="badge badge-estado-anulado">Anulado</span>{% endif %}
+            </td>
+            <td class="small">{{ p.Pago }}</td>
+            <td>
+              {% if p.Entregado %}<i class="bi bi-check-circle-fill text-success"></i>
+              {% else %}<i class="bi bi-circle text-muted"></i>{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-3">Sin pedidos registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

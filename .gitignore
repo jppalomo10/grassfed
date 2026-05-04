@@ -1,0 +1,26 @@
+# Entorno y secretos
+.env
+desktop.ini
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Django
+db.sqlite3
+staticfiles/
+media/
+
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Material de clase (no va al servidor)
+contexto_db/

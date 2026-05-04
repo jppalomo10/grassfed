@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item active">Mi perfil</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4 text-center">
+        <div class="avatar-circle mx-auto mb-3" style="width:64px;height:64px;font-size:1.5rem;">
+          {{ user.username|slice:":1"|upper }}
+        </div>
+        <h5 class="fw-bold">{{ user.username }}</h5>
+        <p class="text-muted">{{ user.email|default:"Sin correo registrado" }}</p>
+        {% if user_group == 'dev' %}
+          <span class="badge bg-purple fs-6">Desarrollador</span>
+        {% elif user_group == 'admin' %}
+          <span class="badge bg-warning text-dark fs-6">Administrador</span>
+        {% else %}
+          <span class="badge bg-secondary fs-6">Usuario Operador</span>
+        {% endif %}
+        <hr>
+        <p class="text-muted small mb-0">
+          Conexión MySQL activa:
+          {% if user_group == 'dev' %}juan_dev (dev_role)
+          {% elif user_group == 'admin' %}maria_admin (admin_role)
+          {% else %}pedro_user (user_role)
+          {% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

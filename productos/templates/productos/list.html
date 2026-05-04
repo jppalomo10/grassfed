@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Productos{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item active">Productos</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3">
+  <h5 class="fw-bold mb-0">Productos y Stock</h5>
+</div>
+
+<!-- Filters -->
+<form method="get" class="mb-3 d-flex flex-wrap gap-2">
+  <div class="input-group" style="max-width:360px;">
+    <input type="text" name="q" value="{{ q }}" class="form-control"
+           placeholder="Buscar por SKU o nombre…">
+    <button class="btn btn-outline-secondary" type="submit">
+      <i class="bi bi-search"></i>
+    </button>
+  </div>
+  <select name="estado" class="form-select" style="width:auto;" onchange="this.form.submit()">
+    <option value="">Todos los estados</option>
+    <option value="OK" {% if estado == 'OK' %}selected{% endif %}>OK</option>
+    <option value="BAJO" {% if estado == 'BAJO' %}selected{% endif %}>Bajo</option>
+    <option value="AGOTADO" {% if estado == 'AGOTADO' %}selected{% endif %}>Agotado</option>
+  </select>
+  {% if q or estado %}
+  <a href="{% url 'productos:list' %}" class="btn btn-outline-danger">
+    <i class="bi bi-x-lg"></i> Limpiar
+  </a>
+  {% endif %}
+</form>
+
+<div class="card table-card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Producto</th>
+            <th class="text-end">Precio (Q)</th>
+            <th class="text-end">Stock mín. (lb)</th>
+            <th class="text-end">Stock actual (lb)</th>
+            <th>Estado</th>
+            <th class="text-center">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in page %}
+          <tr>
+            <td class="font-monospace small">{{ s.SKU }}</td>
+            <td class="fw-semibold">{{ s.Producto }}</td>
+            <td class="text-end small">
+              {% if s.SKU == 'CAR-CAN-01' or s.SKU == 'CAR-CAN-02' %}—
+              {% else %}Q {{ s.Stock_Minimo|floatformat:0 }}{% endif %}
+            </td>
+            <td class="text-end small">{{ s.Stock_Minimo|floatformat:1 }}</td>
+            <td class="text-end fw-semibold">{{ s.Stock_lb|floatformat:2 }}</td>
+            <td>
+              {% if s.Estado_Stock == 'OK' %}
+                <span class="badge badge-stock-ok">OK</span>
+              {% elif s.Estado_Stock == 'BAJO' %}
+                <span class="badge badge-stock-bajo">Bajo</span>
+              {% else %}
+                <span class="badge badge-stock-agotado">Agotado</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <a href="{% url 'productos:detail' s.SKU %}"
+                 class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">No se encontraron productos.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if page.has_other_pages %}
+  <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+    <small class="text-muted">Página {{ page.number }} de {{ page.paginator.num_pages }}</small>
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}&q={{ q }}&estado={{ estado }}">‹</a></li>
+        {% endif %}
+        {% if page.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}&q={{ q }}&estado={{ estado }}">›</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

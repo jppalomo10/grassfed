@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Reportes{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item active">Reportes</li>
+{% endblock %}
+
+{% block content %}
+<h5 class="fw-bold mb-4">Reportes</h5>
+
+<div class="row g-3">
+  {% with reports=forloop %}
+
+  {% for r in "123456789"|make_list %}{% endfor %}
+
+  <div class="col-md-4">
+    <a href="{% url 'reportes:stock' %}" class="text-decoration-none">
+      <div class="card kpi-card h-100 p-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-success bg-opacity-10 text-success"><i class="bi bi-box-seam-fill"></i></div>
+          <div>
+            <div class="fw-semibold">Stock actual</div>
+            <div class="text-muted small">Estado del inventario por producto</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a href="{% url 'reportes:pendientes_pago' %}" class="text-decoration-none">
+      <div class="card kpi-card h-100 p-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-hourglass-split"></i></div>
+          <div>
+            <div class="fw-semibold">Pendientes de pago</div>
+            <div class="text-muted small">Facturas sin cobrar</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a href="{% url 'reportes:pendientes_entrega' %}" class="text-decoration-none">
+      <div class="card kpi-card h-100 p-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-info bg-opacity-10 text-info"><i class="bi bi-truck"></i></div>
+          <div>
+            <div class="fw-semibold">Pendientes de entrega</div>
+            <div class="text-muted small">Pedidos listos para despachar</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a href="{% url 'reportes:ventas_producto' %}" class="text-decoration-none">
+      <div class="card kpi-card h-100 p-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-bar-chart-fill"></i></div>
+          <div>
+            <div class="fw-semibold">Ventas por producto</div>
+            <div class="text-muted small">Ranking de cortes más vendidos</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a href="{% url 'reportes:ventas_cliente' %}" class="text-decoration-none">
+      <div class="card kpi-card h-100 p-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-people-fill"></i></div>
+          <div>
+            <div class="fw-semibold">Ventas por cliente</div>
+            <div class="text-muted small">Historial de compras y deuda</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a href="{% url 'reportes:ventas_fecha' %}" class="text-decoration-none">
+      <div class="card kpi-card h-100 p-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-secondary bg-opacity-10 text-secondary"><i class="bi bi-calendar3"></i></div>
+          <div>
+            <div class="fw-semibold">Ventas por fecha</div>
+            <div class="text-muted small">Timeline de ventas diarias</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a href="{% url 'reportes:ventas_sp' %}" class="text-decoration-none">
+      <div class="card kpi-card h-100 p-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-purple bg-opacity-10" style="color:#7c3aed;"><i class="bi bi-database-fill-gear"></i></div>
+          <div>
+            <div class="fw-semibold">Reporte por rango (SP)</div>
+            <div class="text-muted small">sp_ReporteVentas — 3 resultados</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  {% endwith %}
+</div>
+{% endblock %}

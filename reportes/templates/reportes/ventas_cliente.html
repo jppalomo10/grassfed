@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Ventas por cliente{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item"><a href="{% url 'reportes:index' %}">Reportes</a></li>
+<li class="breadcrumb-item active">Ventas por cliente</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3">
+  <h5 class="fw-bold mb-0">Ventas por cliente <small class="text-muted fw-normal fs-6">(vw_VentasPorCliente)</small></h5>
+  <a href="?export=csv" class="btn btn-sm btn-outline-success ms-auto">
+    <i class="bi bi-download me-1"></i>Exportar CSV
+  </a>
+</div>
+
+<div class="card table-card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Cliente</th><th>NIT</th>
+            <th class="text-end">Pedidos</th>
+            <th class="text-end">Total comprado (Q)</th>
+            <th class="text-end">Deuda (Q)</th>
+            <th>Última compra</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td class="fw-semibold">
+              <a href="{% url 'clientes:detail' r.Telefono %}" class="text-decoration-none">{{ r.Nombre }}</a>
+            </td>
+            <td class="small">{{ r.NIT }}</td>
+            <td class="text-end small">{{ r.Num_Pedidos }}</td>
+            <td class="text-end fw-semibold">Q {{ r.Total_Comprado_Q|floatformat:2 }}</td>
+            <td class="text-end {% if r.Deuda_Q > 0 %}text-danger fw-semibold{% else %}text-muted{% endif %}">
+              Q {{ r.Deuda_Q|floatformat:2 }}
+            </td>
+            <td class="small">{{ r.Ultima_Compra|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">Sin datos.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

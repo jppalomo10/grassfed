@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Factura #{{ header.ID_Pedido }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item"><a href="{% url 'pedidos:detail' header.ID_Pedido %}">Pedido #{{ header.ID_Pedido }}</a></li>
+<li class="breadcrumb-item active">Factura</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+  #sidebar, .topbar, .breadcrumb, .btn, footer { display: none !important; }
+  #page-content { margin: 0 !important; }
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3">
+  <h5 class="fw-bold mb-0">Factura / Detalle pedido #{{ header.ID_Pedido }}</h5>
+  <button onclick="window.print()" class="btn btn-sm btn-outline-secondary ms-auto">
+    <i class="bi bi-printer me-1"></i>Imprimir
+  </button>
+</div>
+
+<div class="card border-0 shadow-sm p-4 mb-3">
+  <div class="row mb-3">
+    <div class="col-6">
+      <h4 class="fw-bold text-primary">GrassFed</h4>
+      <p class="text-muted mb-0 small">Distribuidora de carnes premium</p>
+    </div>
+    <div class="col-6 text-end">
+      <div class="fw-bold fs-5">Factura #{{ header.ID_Pedido }}</div>
+      <div class="text-muted small">{{ header.Fecha }}</div>
+      <div class="mt-1">
+        {% if header.Estado == 'Pagado' %}<span class="badge badge-estado-pagado">Pagado</span>
+        {% elif header.Estado == 'Pendiente de Pago' %}<span class="badge badge-estado-pendiente">Pendiente</span>
+        {% else %}<span class="badge badge-estado-anulado">Anulado</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="text-muted small text-uppercase fw-semibold mb-1">Cliente</div>
+      <div class="fw-semibold">{{ header.Nombre_Cliente }}</div>
+      <div class="small">NIT: {{ header.NIT }}</div>
+      <div class="small text-muted">{{ header.Telefono_Cliente }}</div>
+      <div class="small text-muted">{{ header.Direccion }}</div>
+    </div>
+    <div class="col-md-6 text-md-end">
+      <div class="text-muted small text-uppercase fw-semibold mb-1">Pago y entrega</div>
+      <div class="small">Pago: <strong>{{ header.Pago }}</strong></div>
+      <div class="small">Zona: {{ header.Envio|default:"—" }}</div>
+      <div class="small">Entregado: {% if header.Entregado %}Sí{% else %}No{% endif %}</div>
+    </div>
+  </div>
+
+  <table class="table mb-0">
+    <thead class="table-light">
+      <tr>
+        <th>SKU</th><th>Producto</th>
+        <th class="text-end">Cant.</th>
+        <th class="text-end">Peso (lb)</th>
+        <th class="text-end">Precio (Q)</th>
+        <th class="text-end">Descuento (Q)</th>
+        <th class="text-end">Subtotal (Q)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in lineas %}
+      <tr>
+        <td class="font-monospace small">{{ l.SKU }}</td>
+        <td>{{ l.Producto }}</td>
+        <td class="text-end small">{{ l.Cantidad|default:"—" }}</td>
+        <td class="text-end small">{{ l.Peso|floatformat:3 }}</td>
+        <td class="text-end small">{{ l.Precio|floatformat:2 }}</td>
+        <td class="text-end small">{{ l.Descuento|floatformat:2 }}</td>
+        <td class="text-end fw-semibold">Q {{ l.Subtotal|floatformat:2 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot class="table-light">
+      <tr>
+        <td colspan="6" class="text-end fw-bold fs-5">TOTAL</td>
+        <td class="text-end fw-bold fs-5 text-primary">Q {{ header.Total|floatformat:2 }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% endblock %}

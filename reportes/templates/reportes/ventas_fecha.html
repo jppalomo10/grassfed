@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Ventas por fecha{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item"><a href="{% url 'reportes:index' %}">Reportes</a></li>
+<li class="breadcrumb-item active">Ventas por fecha</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3 flex-wrap">
+  <h5 class="fw-bold mb-0">Ventas por fecha <small class="text-muted fw-normal fs-6">(vw_VentasPorFecha)</small></h5>
+  <a href="?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}&export=csv"
+     class="btn btn-sm btn-outline-success ms-auto">
+    <i class="bi bi-download me-1"></i>Exportar CSV
+  </a>
+</div>
+
+<form method="get" class="mb-3">
+  <div class="d-flex gap-2 align-items-end flex-wrap">
+    <div>
+      <label class="form-label small fw-semibold mb-1">Desde</label>
+      <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="form-control form-control-sm">
+    </div>
+    <div>
+      <label class="form-label small fw-semibold mb-1">Hasta</label>
+      <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control form-control-sm">
+    </div>
+    <button type="submit" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-funnel me-1"></i>Filtrar
+    </button>
+    {% if fecha_desde or fecha_hasta %}
+    <a href="{% url 'reportes:ventas_fecha' %}" class="btn btn-sm btn-outline-danger">
+      <i class="bi bi-x-lg"></i>
+    </a>
+    {% endif %}
+  </div>
+</form>
+
+<div class="card table-card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th class="text-end">Nº pedidos</th>
+            <th class="text-end">Total (Q)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td class="fw-semibold">{{ r.Fecha }}</td>
+            <td class="text-end small">{{ r.Num_Pedidos }}</td>
+            <td class="text-end fw-semibold">Q {{ r.Total_Q|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted py-4">Sin datos para el rango seleccionado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

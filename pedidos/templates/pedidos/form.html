@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% load l10n %}
+{% block title %}Nuevo pedido{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item"><a href="{% url 'pedidos:list' %}">Pedidos</a></li>
+<li class="breadcrumb-item active">Nuevo pedido</li>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<style>
+  .linea-row td { vertical-align: middle; }
+  #lineas-body tr td input { font-size:.875rem; }
+  .sku-badge { font-family: monospace; font-size:.8rem; color: var(--bs-primary); background: rgba(var(--bs-primary-rgb),.08); padding: .2em .5em; border-radius: .25rem; white-space: nowrap; }
+  .ts-wrapper.form-select-sm .ts-control { min-height: 31px; padding: .15rem .5rem; font-size: .875rem; }
+  .ts-wrapper.form-select-sm .ts-control input { font-size: .875rem; }
+  .precio-readonly { background-color: var(--bs-gray-100); cursor: not-allowed; }
+  /* Let Tom Select dropdown overflow the card */
+  .card, .card-body, .table-responsive { overflow: visible !important; }
+  /* Fix product column width so dropdown doesn't expand it */
+  #lineas-table th:first-child, #lineas-table td:first-child { width: 400px; min-width: 400px; max-width: 400px; }
+  #lineas-table td:first-child .ts-wrapper { width: 100%; }
+  #lineas-table td:first-child .ts-dropdown { width: 400px !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h5 class="fw-bold mb-0">Nuevo pedido</h5>
+  <div class="d-flex gap-2">
+    <a href="{% url 'pedidos:list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-x-lg me-1"></i>Cancelar
+    </a>
+    <button type="submit" form="pedido-form" class="btn btn-primary" id="btn-submit">
+      <i class="bi bi-check-lg me-1"></i>Registrar pedido
+    </button>
+  </div>
+</div>
+
+<form method="post" id="pedido-form" novalidate>
+  {% csrf_token %}
+
+  <div class="row g-3 mb-4">
+    <!-- Header card -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold py-3">
+          <i class="bi bi-receipt me-2 text-primary"></i>Datos generales
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Fecha <span class="text-danger">*</span></label>
+              <input type="date" name="fecha" class="form-control" value="{{ today }}" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Cliente <span class="text-danger">*</span></label>
+              <select name="cliente" class="form-select" required>
+                <option value="">— Seleccione —</option>
+                {% for c in clientes %}
+                <option value="{{ c.Telefono }}"
+                  {% if c.Telefono == cliente_presel %}selected{% endif %}>
+                  {{ c.Nombre }} ({{ c.Telefono }})
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Forma de pago <span class="text-danger">*</span></label>
+              <select name="pago" class="form-select" required>
+                <option value="">— Seleccione —</option>
+                {% for p in pago_choices %}
+                <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-semibold">Zona de envío</label>
+              <input type="text" name="envio" class="form-control" placeholder="Ej: Zona 10">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line items -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold py-3 d-flex align-items-center">
+          <i class="bi bi-list-ul me-2 text-primary"></i>Productos
+          <button type="button" class="btn btn-sm btn-outline-primary ms-auto" id="btn-add-linea">
+            <i class="bi bi-plus-lg me-1"></i>Agregar línea
+          </button>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table mb-0" id="lineas-table">
+              <thead>
+                <tr>
+                  <th style="min-width:220px;">Producto</th>
+                  <th style="min-width:90px;">SKU</th>
+                  <th style="min-width:70px;">Cantidad</th>
+                  <th style="min-width:90px;">Peso (lb)</th>
+                  <th style="min-width:100px;">Precio (Q)</th>
+                  <th style="min-width:100px;">Descuento (Q)</th>
+                  <th style="min-width:110px;" class="text-end">Subtotal (Q)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="lineas-body">
+                <!-- rows inserted by JS -->
+              </tbody>
+              <tfoot>
+                <tr class="table-light">
+                  <td colspan="6" class="text-end fw-bold">Total estimado:</td>
+                  <td class="text-end fw-bold fs-5" id="total-display">Q 0.00</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</form>
+
+<!-- Product data for JS -->
+<script id="productos-data" type="application/json">
+[{% for p in productos %}{"sku":"{{ p.SKU }}","nombre":"{{ p.Producto|escapejs }}","precio":{{ p.Precio|unlocalize|default:"0" }}}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+const productosData = JSON.parse(document.getElementById('productos-data').textContent);
+const tbody = document.getElementById('lineas-body');
+let rowCount = 0;
+
+// Build a lookup map: sku → { nombre, precio }
+const prodMap = {};
+productosData.forEach(p => { prodMap[p.sku] = p; });
+
+function buildSelect(selectedSku) {
+  let html = '<option value="">— Seleccione producto —</option>';
+  productosData.forEach(p => {
+    html += `<option value="${p.sku}" ${p.sku === selectedSku ? 'selected' : ''}>${p.nombre}</option>`;
+  });
+  return html;
+}
+
+function addRow(sku = '', peso = '', precio = '', descuento = '0', cantidad = '') {
+  const id = rowCount++;
+  const tr = document.createElement('tr');
+  tr.className = 'linea-row';
+  tr.innerHTML = `
+    <td>
+      <select name="sku[]" class="form-select form-select-sm sku-select" id="sku-sel-${id}" required>
+        ${buildSelect(sku)}
+      </select>
+    </td>
+    <td><span class="sku-badge sku-display">${sku || '—'}</span></td>
+    <td><input type="number" name="cantidad[]" class="form-control form-control-sm"
+         step="1" min="1" value="${cantidad}" placeholder="—"></td>
+    <td><input type="number" name="peso[]" class="form-control form-control-sm peso-input"
+         step="0.001" min="0.001" value="${peso}" required placeholder="0.000"></td>
+    <td><input type="number" name="precio[]" class="form-control form-control-sm precio-input precio-readonly"
+         step="0.01" min="0" value="${precio}" required placeholder="0.00" readonly tabindex="-1"></td>
+    <td><input type="number" name="descuento[]" class="form-control form-control-sm desc-input"
+         step="0.01" min="0" value="${descuento}" placeholder="0.00"></td>
+    <td class="text-end fw-semibold subtotal-cell">Q 0.00</td>
+    <td>
+      <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+        <i class="bi bi-trash"></i>
+      </button>
+    </td>`;
+  tbody.appendChild(tr);
+
+  // Initialize Tom Select on the product dropdown
+  const skuSelEl = tr.querySelector(`#sku-sel-${id}`);
+  const skuDisplay = tr.querySelector('.sku-display');
+  const precioInput = tr.querySelector('.precio-input');
+
+  const tomSel = new TomSelect(skuSelEl, {
+    placeholder: '— Buscar producto —',
+    allowEmptyOption: true,
+    controlInput: '<input>',
+    render: {
+      option: function(data, escape) {
+        const p = prodMap[data.value];
+        if (!p) return `<div class="py-1 px-2 text-muted">${escape(data.text)}</div>`;
+        return `<div class="py-1 px-2">
+          <span>${escape(p.nombre)}</span>
+          <span class="text-muted ms-2" style="font-size:.8em">${escape(p.sku)}</span>
+        </div>`;
+      },
+      item: function(data, escape) {
+        return `<div>${escape(data.text)}</div>`;
+      }
+    },
+    onChange: function(value) {
+      const p = prodMap[value];
+      if (p) {
+        skuDisplay.textContent = p.sku;
+        precioInput.value = parseFloat(p.precio).toFixed(2);
+      } else {
+        skuDisplay.textContent = '—';
+        precioInput.value = '';
+      }
+      recalcRow(tr);
+    }
+  });
+
+  // Store reference for cleanup
+  tr._tomSelect = tomSel;
+
+  tr.querySelectorAll('input').forEach(i => i.addEventListener('input', () => recalcRow(tr)));
+  tr.querySelector('.remove-row').addEventListener('click', () => {
+    if (tr._tomSelect) tr._tomSelect.destroy();
+    tr.remove();
+    recalcTotal();
+  });
+  recalcRow(tr);
+}
+
+function recalcRow(tr) {
+  const peso = parseFloat(tr.querySelector('.peso-input').value) || 0;
+  const precio = parseFloat(tr.querySelector('.precio-input').value) || 0;
+  const desc = parseFloat(tr.querySelector('.desc-input').value) || 0;
+  const sub = Math.max(0, peso * precio - desc);
+  tr.querySelector('.subtotal-cell').textContent = 'Q ' + sub.toFixed(2);
+  recalcTotal();
+}
+
+function recalcTotal() {
+  let total = 0;
+  document.querySelectorAll('.subtotal-cell').forEach(el => {
+    total += parseFloat(el.textContent.replace('Q ', '')) || 0;
+  });
+  document.getElementById('total-display').textContent = 'Q ' + total.toFixed(2);
+}
+
+document.getElementById('btn-add-linea').addEventListener('click', () => addRow());
+
+// Start with one empty row
+addRow();
+
+// Validate at least one line on submit
+document.getElementById('pedido-form').addEventListener('submit', e => {
+  if (tbody.children.length === 0) {
+    e.preventDefault();
+    alert('Debe agregar al menos un producto al pedido.');
+  }
+});
+</script>
+{% endblock %}
+

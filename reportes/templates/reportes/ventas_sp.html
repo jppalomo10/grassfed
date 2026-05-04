@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Reporte de ventas (SP){% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item"><a href="{% url 'reportes:index' %}">Reportes</a></li>
+<li class="breadcrumb-item active">Reporte por rango</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3 flex-wrap">
+  <div>
+    <h5 class="fw-bold mb-0">Reporte de ventas por rango</h5>
+    <small class="text-muted">sp_ReporteVentas — 3 conjuntos de resultados</small>
+  </div>
+  {% if por_producto %}
+  <a href="?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}&export=csv"
+     class="btn btn-sm btn-outline-success ms-auto">
+    <i class="bi bi-download me-1"></i>Exportar productos CSV
+  </a>
+  {% endif %}
+</div>
+
+<!-- Date filter -->
+<form method="get" class="mb-4">
+  <div class="card border-0 shadow-sm p-3">
+    <div class="d-flex gap-3 align-items-end flex-wrap">
+      <div>
+        <label class="form-label small fw-semibold mb-1">Fecha inicio <span class="text-danger">*</span></label>
+        <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="form-control" required>
+      </div>
+      <div>
+        <label class="form-label small fw-semibold mb-1">Fecha fin <span class="text-danger">*</span></label>
+        <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-play-fill me-1"></i>Ejecutar SP
+      </button>
+      {% if fecha_desde %}
+      <a href="{% url 'reportes:ventas_sp' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg"></i> Limpiar
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+{% if fecha_desde and fecha_hasta %}
+
+  <!-- Resumen -->
+  {% if resumen %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white fw-semibold py-3">
+      <i class="bi bi-clipboard-data me-2 text-primary"></i>Resumen del período
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for row in resumen %}
+        <div class="col-md-4 text-center">
+          <div class="fs-3 fw-bold">{{ row.0 }}</div>
+          <div class="text-muted small">Pedidos</div>
+        </div>
+        <div class="col-md-4 text-center">
+          <div class="fs-3 fw-bold">Q {{ row.1|floatformat:2 }}</div>
+          <div class="text-muted small">Total vendido</div>
+        </div>
+        <div class="col-md-4 text-center">
+          <div class="fs-3 fw-bold">Q {{ row.2|floatformat:2 }}</div>
+          <div class="text-muted small">Ticket promedio</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row g-3">
+    <!-- By product -->
+    <div class="col-md-8">
+      <div class="card table-card h-100">
+        <div class="card-header bg-white fw-semibold py-3">
+          <i class="bi bi-box-seam me-2 text-primary"></i>Por producto
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr><th>Producto</th><th class="text-end">Peso (lb)</th><th class="text-end">Total (Q)</th></tr>
+            </thead>
+            <tbody>
+              {% for r in por_producto %}
+              <tr>
+                <td>{{ r.0 }}</td>
+                <td class="text-end small">{{ r.1|floatformat:2 }}</td>
+                <td class="text-end fw-semibold">Q {{ r.2|floatformat:2 }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-center text-muted py-3">Sin datos.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- By payment method -->
+    <div class="col-md-4">
+      <div class="card table-card h-100">
+        <div class="card-header bg-white fw-semibold py-3">
+          <i class="bi bi-credit-card me-2 text-primary"></i>Por forma de pago
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr><th>Pago</th><th class="text-end">Pedidos</th><th class="text-end">Total (Q)</th></tr>
+            </thead>
+            <tbody>
+              {% for r in por_pago %}
+              <tr>
+                <td>{{ r.0 }}</td>
+                <td class="text-end small">{{ r.1 }}</td>
+                <td class="text-end fw-semibold">Q {{ r.2|floatformat:2 }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-center text-muted py-3">Sin datos.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% else %}
+<div class="alert alert-info">
+  <i class="bi bi-info-circle me-2"></i>
+  Seleccione un rango de fechas y presione <strong>Ejecutar SP</strong> para llamar
+  <code>sp_ReporteVentas(fecha_inicio, fecha_fin)</code>.
+</div>
+{% endif %}
+
+{% endblock %}

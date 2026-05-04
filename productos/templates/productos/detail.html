@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}{{ producto.Producto }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/">Inicio</a></li>
+<li class="breadcrumb-item"><a href="{% url 'productos:list' %}">Productos</a></li>
+<li class="breadcrumb-item active">{{ producto.SKU }}</li>
+{% endblock %}
+
+{% block content %}
+<h5 class="fw-bold mb-4">{{ producto.Producto }}</h5>
+
+<div class="row g-3 mb-4">
+  <!-- Product info -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold py-3">
+        <i class="bi bi-box-seam me-2 text-primary"></i>Información
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-5 text-muted">SKU</dt>
+          <dd class="col-7 font-monospace">{{ producto.SKU }}</dd>
+          <dt class="col-5 text-muted">Precio</dt>
+          <dd class="col-7 fw-bold">
+            {% if producto.Precio %}Q {{ producto.Precio|floatformat:2 }}{% else %}—{% endif %}
+          </dd>
+          <dt class="col-5 text-muted">Stock mín.</dt>
+          <dd class="col-7">{{ producto.Stock_Minimo|floatformat:1 }} lb</dd>
+          <dt class="col-5 text-muted">Alta</dt>
+          <dd class="col-7">{{ producto.Fecha_Alta }}</dd>
+          <dt class="col-5 text-muted">Activo</dt>
+          <dd class="col-7">
+            {% if producto.Activo %}
+              <span class="badge bg-success">Sí</span>
+            {% else %}
+              <span class="badge bg-secondary">No</span>
+            {% endif %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live stock -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold py-3">
+        <i class="bi bi-graph-up me-2 text-success"></i>Stock en tiempo real
+      </div>
+      <div class="card-body d-flex align-items-center justify-content-center flex-column">
+        <div class="fs-1 fw-bold
+          {% if stock_view %}
+            {% if stock_view.Estado_Stock == 'OK' %}text-success
+            {% elif stock_view.Estado_Stock == 'BAJO' %}text-warning
+            {% else %}text-danger{% endif %}
+          {% endif %}
+        ">
+          {{ stock_live|floatformat:2 }} <span class="fs-5 fw-normal">lb</span>
+        </div>
+        {% if stock_view %}
+        <span class="mt-2 badge
+          {% if stock_view.Estado_Stock == 'OK' %}badge-stock-ok
+          {% elif stock_view.Estado_Stock == 'BAJO' %}badge-stock-bajo
+          {% else %}badge-stock-agotado{% endif %}
+        ">
+          {{ stock_view.Estado_Stock }}
+        </span>
+        <small class="text-muted mt-2">Mínimo: {{ stock_view.Stock_Minimo|floatformat:1 }} lb</small>
+        {% endif %}
+        <small class="text-muted mt-1" style="font-size:.75rem;">
+          fn_StockProducto('{{ producto.SKU }}')
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock breakdown -->
+  {% if stock_view %}
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold py-3">
+        <i class="bi bi-pie-chart me-2 text-info"></i>Desglose (vw_StockActual)
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-8 text-muted">Ingresos</dt>
+          <dd class="col-4 text-end fw-semibold text-success">+{{ stock_view.Ingresos_lb|floatformat:2 }} lb</dd>
+          <dt class="col-8 text-muted">Transformaciones</dt>
+          <dd class="col-4 text-end fw-semibold text-warning">−{{ stock_view.Transf_Salida_lb|floatformat:2 }} lb</dd>
+          <dt class="col-8 text-muted">Ventas</dt>
+          <dd class="col-4 text-end fw-semibold text-danger">−{{ stock_view.Ventas_lb|floatformat:2 }} lb</dd>
+          <dt class="col-8 fw-bold border-top pt-2">Stock neto</dt>
+          <dd class="col-4 text-end fw-bold border-top pt-2">{{ stock_view.Stock_lb|floatformat:2 }} lb</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Movement history -->
+<div class="card table-card">
+  <div class="card-header bg-white fw-semibold py-3">
+    <i class="bi bi-arrows-expand me-2 text-primary"></i>Movimientos de inventario (últimos 30)
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th>ID Movimiento</th>
+            <th>Fecha</th>
+            <th class="text-end text-success">Debe (lb)</th>
+            <th class="text-end text-danger">Haber (lb)</th>
+            <th>Comentario</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in movimientos %}
+          <tr>
+            <td class="font-monospace small">{{ m.ID_Movimiento }}</td>
+            <td class="small">{{ m.Fecha }}</td>
+            <td class="text-end small text-success">
+              {% if m.Debe %}+{{ m.Debe|floatformat:2 }}{% else %}—{% endif %}
+            </td>
+            <td class="text-end small text-danger">
+              {% if m.Haber %}−{{ m.Haber|floatformat:2 }}{% else %}—{% endif %}
+            </td>
+            <td class="small text-muted">{{ m.Comentario|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-3">Sin movimientos registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
